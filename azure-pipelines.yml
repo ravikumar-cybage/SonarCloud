@@ -1,0 +1,58 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  Configuration: "Release"
+
+steps:
+  - checkout: self
+    fetchDepth: 0 # Don't do shallow clone, for SonarQube
+  - task: SonarCloudPrepare@3
+    inputs:
+      SonarQube: "SonarCloud"
+      organization: "gardiner"
+      scannerMode: "dotnet"
+      projectKey: "Gardiner_SonarCloudDemo"
+      projectName: "SonarCloudDemo"
+      extraProperties: |
+        # Additional properties that will be passed to the scanner, put one key=value per line
+
+        # Disable Multi-Language analysis
+        sonar.scanner.scanAll=false
+
+        # Configure location of the OpenCover report
+        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)/Tests/results/coverage.opencover.xml
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: "Tests/Tests.csproj"
+      arguments: "/p:CollectCoverage=true /p:CoverletOutput=results/coverage"
+
+  - script: ls -alR ./Tests
+    displayName: "List results directory"
+
+  - task: SonarCloudAnalyze@3
+    inputs:
+      jdkversion: "JAVA_HOME_17_X64"
+
+  - task: SonarCloudPublish@3
+    inputs:
+      pollingTimeoutSec: "300"
+
+  - task: PublishCodeCoverageResults@2
+    inputs:
+      summaryFileLocation: "$(Build.SourcesDirectory)/Tests/results/coverage.cobertura.xml"
+      failIfCoverageEmpty: true
