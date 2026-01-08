@@ -12,7 +12,7 @@
 <CollectCoverage>true</CollectCoverage>
 <!-- Output relative to project directory -->
 <CoverletOutput>$(MSBuildProjectDirectory)/results/coverage</CoverletOutput>
-<CoverletOutputFormat>opencover,cobertura</CoverletOutputFormat>
+<CoverletOutputFormat>opencover</CoverletOutputFormat>
 </PropertyGroup>
  
   <ItemGroup>
@@ -36,3 +36,4 @@
 </ItemGroup>
  
 </Project>
+
